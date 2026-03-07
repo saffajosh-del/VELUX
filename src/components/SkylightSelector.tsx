@@ -52,6 +52,7 @@ const PITCH_OPTIONS = [
     {
         id: 'pitched',
         label: 'Pitched Roof',
+        subLabel: '15° - 90°',
         icon: (
             <svg width="60" height="40" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-gray-800">
                 <path d="M5 35L30 5L55 35" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
@@ -61,6 +62,7 @@ const PITCH_OPTIONS = [
     {
         id: 'flat',
         label: 'Flat Roof',
+        subLabel: '0° - 60°',
         icon: (
             <svg width="60" height="40" viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-gray-800">
                 <path d="M10 25H50" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
@@ -350,8 +352,10 @@ export default function SkylightSelector() {
     };
 
     const handleSizeSelect = (code: string) => {
-        setSelection({ ...selection, sizeCode: code });
-        nextStep('results');
+        const results = validProducts.filter(p => p.compatibleSizes.includes(code));
+        const selectedProduct = results.length > 0 ? results[0].id : null;
+        setSelection({ ...selection, sizeCode: code, selectedProduct });
+        nextStep('blinds');
     };
 
     const handleProductSelect = (id: string) => {
@@ -451,6 +455,7 @@ export default function SkylightSelector() {
                 >
                     <span className="text-4xl mb-4 grayscale group-hover:grayscale-0 transition-all">{opt.icon}</span>
                     <span className="text-lg font-medium text-foreground">{opt.label}</span>
+                    {opt.subLabel && <span className="text-sm text-muted-foreground mt-1">{opt.subLabel}</span>}
                 </button>
             ))}
         </div>
@@ -571,6 +576,14 @@ export default function SkylightSelector() {
             >
                 Not Sure
             </button>
+            <div className="mt-8 flex justify-center">
+                <img
+                    src="/truss-spacing-diagram.png"
+                    alt="Diagram showing truss/rafter spacing measurement"
+                    className="max-w-full h-auto rounded-xl border border-border shadow-sm"
+                    style={{ maxHeight: '400px' }}
+                />
+            </div>
         </div>
     );
 
@@ -601,8 +614,8 @@ export default function SkylightSelector() {
                     Sizes above refer to <span className="font-bold">{selection.productCategory === 'roof-window' ? 'Overall Frame Dimensions' : 'Overall Curb Dimensions'}</span> and are <span className="italic text-red-600">width x height</span>.
                 </p>
                 <img
-                    src="/curb-diagram.png"
-                    alt="Curb Dimensions Diagram"
+                    src="/skylight-size.png"
+                    alt="Skylight Dimensions Diagram"
                     className="max-w-full h-auto max-h-64 object-contain rounded-lg border shadow-sm"
                 />
             </div>
@@ -1133,6 +1146,11 @@ export default function SkylightSelector() {
             } else {
                 // Flat roof
                 flashingName = 'Custom Curb Flashing Required';
+
+                // FCM sizes 1430, 3055, 3072, 4672 have no blind options
+                if (['1430', '3055', '3072', '4672'].includes(sizeCode)) {
+                    flashingName = `${flashingName}\nNo blind available for this model`;
+                }
             }
         }
 
@@ -1211,7 +1229,11 @@ export default function SkylightSelector() {
                                 )}
                                 {(flashingPrice > 0 || flashingName.includes('Custom') || flashingName.includes('Integrated')) && (
                                     <div className="flex justify-between text-sm">
-                                        <span className={flashingName.includes('Custom') ? "font-bold text-red-600" : ""}>{flashingName}</span>
+                                        <span className={flashingName.includes('Custom') ? "font-bold text-red-600" : ""}>
+                                            {flashingName.split('\n').map((line, i) => (
+                                                <span key={i} className="block">{line}</span>
+                                            ))}
+                                        </span>
                                         <span>{flashingPrice > 0 ? `$${flashingPrice}` : ''}</span>
                                     </div>
                                 )}
@@ -1240,6 +1262,9 @@ export default function SkylightSelector() {
                                 <span className="text-primary">${total}</span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">* Does not include installation</p>
+                            {product?.id === 'vse' && (
+                                <p className="text-xs text-red-600 mt-1">* Requires Certified Electrician</p>
+                            )}
                         </div>
 
                         <div className="w-full md:w-64 flex flex-col items-center">
