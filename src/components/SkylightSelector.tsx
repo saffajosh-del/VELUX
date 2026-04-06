@@ -894,7 +894,7 @@ export default function SkylightSelector() {
 
         // Check if blind tray is available for flat roof products
         // FCM sizes 1430, 3055, 3072, 4672 have no blind tray, so skip blinds entirely
-        if (isFlatRoof && selection.sizeCode) {
+        if (isFlatRoof && product.id === 'fcm' && selection.sizeCode) {
             const zzz199 = ACCESSORIES.find(a => a.id === 'zzz199');
             if (zzz199) {
                 const prices = zzz199.prices as unknown as Record<string, number>;
@@ -1179,7 +1179,7 @@ export default function SkylightSelector() {
 
         // Accessory Logic (ZZZ 199 for Flat Roof Blinds)
         let accessoryPrice = 0;
-        if (isFlatRoof && blind && sizeCode) {
+        if (isFlatRoof && product?.id === 'fcm' && blind && sizeCode) {
             const zzz199 = ACCESSORIES.find(a => a.id === 'zzz199');
             if (zzz199) {
                 const prices = zzz199.prices as unknown as Record<string, number>;
@@ -1237,48 +1237,67 @@ export default function SkylightSelector() {
                             </div>
 
                             {/* Itemized Costs */}
-                            <div className="py-4 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span>{getPartnerCode(isSunTunnel ? `${product?.id.toUpperCase()} ${product?.id === 'tcr' ? sizeCode : (sizeCode === '014' ? '0K14' : sizeCode)}` : `${product?.model} ${sizeCode}`)} {selection.productCategory === 'roof-window' ? 'Roof Window' : (isSunTunnel ? 'Sun Tunnel' : 'Skylight')}</span>
+                            <div className="py-4 space-y-4">
+                                <div className="flex justify-between text-sm items-start">
+                                    <div>
+                                        <div>{getPartnerCode(isSunTunnel ? `${product?.id.toUpperCase()} ${product?.id === 'tcr' ? sizeCode : (sizeCode === '014' ? '0K14' : sizeCode)}` : `${product?.model} ${sizeCode}`)}</div>
+                                        <div className="text-muted-foreground mt-0.5">{selection.productCategory === 'roof-window' ? 'Roof Window' : (isSunTunnel ? 'Sun Tunnel' : 'Skylight')}</div>
+                                    </div>
                                     <span>${basePrice}</span>
                                 </div>
                                 {blind && blindPrice > 0 && (
-                                    <div className="flex justify-between text-sm">
-                                        <span>{getPartnerCode(`${blind.model} ${sizeCode}`)} {blind.name} Blind</span>
+                                    <div className="flex justify-between text-sm items-start">
+                                        <div>
+                                            <div>{getPartnerCode(`${blind.model} ${sizeCode}`)}</div>
+                                            <div className="text-muted-foreground mt-0.5">{blind.name} Blind</div>
+                                        </div>
                                         <span>${blindPrice}</span>
                                     </div>
                                 )}
                                 {(flashingPrice > 0 || flashingName.includes('Custom') || flashingName.includes('Integrated')) && (
-                                    <div className="flex justify-between text-sm">
-                                        <span className={flashingName.includes('Custom') ? "font-bold text-red-600" : ""}>
+                                    <div className="flex justify-between text-sm items-start">
+                                        <div className={flashingName.includes('Custom') ? "font-bold text-red-600" : ""}>
                                             {flashingName.split('\n').map((line, i) => {
                                                 const match = line.match(/^(ED[LW] [A-Z0-9]+)/);
-                                                let displayLine: React.ReactNode = line;
                                                 if (match) {
-                                                    const afterText = line.substring(match[1].length);
-                                                    displayLine = <>{getPartnerCode(match[1])}{afterText}</>;
+                                                    const afterText = line.substring(match[1].length).trim();
+                                                    return (
+                                                        <div key={i}>
+                                                            <div>{getPartnerCode(match[1])}</div>
+                                                            {afterText && <div className="text-muted-foreground font-normal mt-0.5">{afterText}</div>}
+                                                        </div>
+                                                    );
                                                 }
-                                                return <span key={i} className="block">{displayLine}</span>
+                                                return <div key={i}>{line}</div>
                                             })}
-                                        </span>
+                                        </div>
                                         <span>{flashingPrice > 0 ? `$${flashingPrice}` : ''}</span>
                                     </div>
                                 )}
                                 {selection.selectedInsectScreen && screenPrice > 0 && (
-                                    <div className="flex justify-between text-sm">
-                                        <span>{getPartnerCode(`ZIL ${sizeCode}`)} Insect Screen</span>
+                                    <div className="flex justify-between text-sm items-start">
+                                        <div>
+                                            <div>{getPartnerCode(`ZIL ${sizeCode}`)}</div>
+                                            <div className="text-muted-foreground mt-0.5">Insect Screen</div>
+                                        </div>
                                         <span>${screenPrice}</span>
                                     </div>
                                 )}
                                 {addonName && addonPrice > 0 && (
-                                    <div className="flex justify-between text-sm">
-                                        <span>{getPartnerCode('ZTR 0K14')} - {addonName}</span>
+                                    <div className="flex justify-between text-sm items-start">
+                                        <div>
+                                            <div>{getPartnerCode('ZTR 0K14')}</div>
+                                            <div className="text-muted-foreground mt-0.5">{addonName}</div>
+                                        </div>
                                         <span>${addonPrice}</span>
                                     </div>
                                 )}
                                 {accessoryPrice > 0 && (
-                                    <div className="flex justify-between text-sm">
-                                        <span>{getPartnerCode('ZZZ 199')} Blind Tray</span>
+                                    <div className="flex justify-between text-sm items-start">
+                                        <div>
+                                            <div>{getPartnerCode(`ZZZ 199 ${sizeCode}`)}</div>
+                                            <div className="text-muted-foreground mt-0.5">Blind Tray</div>
+                                        </div>
                                         <span>${accessoryPrice}</span>
                                     </div>
                                 )}
