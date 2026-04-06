@@ -366,7 +366,7 @@ export const ACCESSORIES = [
     },
     {
         id: 'ztr0k14',
-        name: 'ZTR 0K14 Rigid 1240mm Extension',
+        name: 'Rigid 1240mm Extension',
         compatibleModels: ['TWR', 'TCR'],
         prices: {
             '0K14': 307

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Check, ArrowLeft, Printer } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import bunningsMapping from '../data/bunnings-mapping.json';
 
 type StepId = 'product-type' | 'pitch' | 'material' | 'sun-tunnel-type' | 'roof-window-model' | 'opening' | 'truss' | 'size' | 'results' | 'blinds' | 'addon' | 'summary';
 
@@ -1092,6 +1093,28 @@ export default function SkylightSelector() {
     };
 
     const renderSummaryStep = () => {
+        const getPartnerCode = (code: string, blockLayout = false) => {
+            if (import.meta.env.VITE_PARTNER === 'bunnings' || import.meta.env.NEXT_PUBLIC_PARTNER === 'bunnings') {
+                const mapped = (bunningsMapping as Record<string, string>)[code];
+                if (mapped && mapped !== 'Not Available' && mapped !== '#REF!') {
+                    return (
+                        <>
+                            <strong className="font-extrabold">{mapped}</strong>
+                            {blockLayout ? <span className="block mt-1 text-sm font-normal text-muted-foreground whitespace-nowrap">({code})</span> : ` (${code})`}
+                        </>
+                    );
+                } else {
+                    return (
+                        <>
+                            <strong className="font-bold italic text-amber-600">(No Fine Line)</strong>
+                            {blockLayout ? <span className="block mt-1 text-sm font-normal text-muted-foreground whitespace-nowrap">({code})</span> : ` (${code})`}
+                        </>
+                    );
+                }
+            }
+            return code;
+        };
+
         const product = PRODUCTS.find(p => p.id === selection.selectedProduct);
         const blind = BLINDS.find(b => b.id === selection.selectedBlind);
         // Sun Tunnels have fixed size code 014 / 0K14, logic handled via product properties or selection
@@ -1156,7 +1179,6 @@ export default function SkylightSelector() {
 
         // Accessory Logic (ZZZ 199 for Flat Roof Blinds)
         let accessoryPrice = 0;
-        let accessoryName = '';
         if (isFlatRoof && blind && sizeCode) {
             const zzz199 = ACCESSORIES.find(a => a.id === 'zzz199');
             if (zzz199) {
@@ -1165,7 +1187,6 @@ export default function SkylightSelector() {
                 // But Typescript sees the union. Cast to unknown first.
                 if (prices[sizeCode]) {
                     accessoryPrice = prices[sizeCode];
-                    accessoryName = `ZZZ 199 ${sizeCode} Blind Tray`;
                 }
             }
         }
@@ -1195,14 +1216,14 @@ export default function SkylightSelector() {
 
                     <div className="flex flex-col-reverse md:flex-row gap-8 items-start">
                         <div className="space-y-4 text-sm md:text-base flex-1 w-full">
-                            <div className="flex justify-between py-2 border-b">
-                                <span className="text-muted-foreground">Product</span>
-                                <span className="font-medium text-right">
+                            <div className="flex justify-between items-start py-2 border-b">
+                                <span className="text-muted-foreground mt-1">Product</span>
+                                <div className="font-medium text-right">
                                     {isSunTunnel
-                                        ? `${product?.name.split('(')[0].trim()} (${product?.id.toUpperCase()} ${sizeCode})`
-                                        : `${product?.name.split('(')[0].trim()} (${product?.model} ${sizeCode})`
+                                        ? <>{product?.name.split('(')[0].trim()} - {getPartnerCode(`${product?.id.toUpperCase()} ${product?.id === 'tcr' ? sizeCode : (sizeCode === '014' ? '0K14' : sizeCode)}`, true)}</>
+                                        : <>{product?.name.split('(')[0].trim()} - {getPartnerCode(`${product?.model} ${sizeCode}`, true)}</>
                                     }
-                                </span>
+                                </div>
                             </div>
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">Size</span>
@@ -1218,40 +1239,46 @@ export default function SkylightSelector() {
                             {/* Itemized Costs */}
                             <div className="py-4 space-y-2">
                                 <div className="flex justify-between text-sm">
-                                    <span>{product?.model} {sizeCode} {selection.productCategory === 'roof-window' ? 'Roof Window' : (isSunTunnel ? 'Sun Tunnel' : 'Skylight')}</span>
+                                    <span>{getPartnerCode(isSunTunnel ? `${product?.id.toUpperCase()} ${product?.id === 'tcr' ? sizeCode : (sizeCode === '014' ? '0K14' : sizeCode)}` : `${product?.model} ${sizeCode}`)} {selection.productCategory === 'roof-window' ? 'Roof Window' : (isSunTunnel ? 'Sun Tunnel' : 'Skylight')}</span>
                                     <span>${basePrice}</span>
                                 </div>
                                 {blind && blindPrice > 0 && (
                                     <div className="flex justify-between text-sm">
-                                        <span>{blind.model} {sizeCode} {blind.name} Blind</span>
+                                        <span>{getPartnerCode(`${blind.model} ${sizeCode}`)} {blind.name} Blind</span>
                                         <span>${blindPrice}</span>
                                     </div>
                                 )}
                                 {(flashingPrice > 0 || flashingName.includes('Custom') || flashingName.includes('Integrated')) && (
                                     <div className="flex justify-between text-sm">
                                         <span className={flashingName.includes('Custom') ? "font-bold text-red-600" : ""}>
-                                            {flashingName.split('\n').map((line, i) => (
-                                                <span key={i} className="block">{line}</span>
-                                            ))}
+                                            {flashingName.split('\n').map((line, i) => {
+                                                const match = line.match(/^(ED[LW] [A-Z0-9]+)/);
+                                                let displayLine: React.ReactNode = line;
+                                                if (match) {
+                                                    const afterText = line.substring(match[1].length);
+                                                    displayLine = <>{getPartnerCode(match[1])}{afterText}</>;
+                                                }
+                                                return <span key={i} className="block">{displayLine}</span>
+                                            })}
                                         </span>
                                         <span>{flashingPrice > 0 ? `$${flashingPrice}` : ''}</span>
                                     </div>
                                 )}
                                 {selection.selectedInsectScreen && screenPrice > 0 && (
                                     <div className="flex justify-between text-sm">
-                                        <span>ZIL {sizeCode} Insect Screen</span>
+                                        <span>{getPartnerCode(`ZIL ${sizeCode}`)} Insect Screen</span>
                                         <span>${screenPrice}</span>
                                     </div>
                                 )}
                                 {addonName && addonPrice > 0 && (
                                     <div className="flex justify-between text-sm">
-                                        <span>{addonName}</span>
+                                        <span>{getPartnerCode('ZTR 0K14')} - {addonName}</span>
                                         <span>${addonPrice}</span>
                                     </div>
                                 )}
                                 {accessoryPrice > 0 && (
                                     <div className="flex justify-between text-sm">
-                                        <span>{accessoryName}</span>
+                                        <span>{getPartnerCode('ZZZ 199')} Blind Tray</span>
                                         <span>${accessoryPrice}</span>
                                     </div>
                                 )}
