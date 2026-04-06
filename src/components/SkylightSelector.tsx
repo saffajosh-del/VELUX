@@ -1362,9 +1362,21 @@ export default function SkylightSelector() {
     return (
         <div className="max-w-2xl mx-auto w-full min-h-screen py-10 px-4 flex flex-col font-sans">
             {/* Header - Minimalist */}
-            <div className="mb-12 text-center">
-                <img src="/velux logo.svg" alt="VELUX" className="h-16 mx-auto mb-2" />
-            </div>
+            {(import.meta.env.VITE_PARTNER === 'bunnings' || import.meta.env.NEXT_PUBLIC_PARTNER === 'bunnings') ? (
+                <div className="mb-12 flex justify-center items-center w-full">
+                    <div className="flex-1 flex justify-end pr-4">
+                        <img src="/velux logo.svg" alt="VELUX" className="h-16 object-contain" />
+                    </div>
+                    <div className="h-16 w-px bg-gray-300 shrink-0"></div>
+                    <div className="flex-1 flex justify-start pl-4">
+                        <img src="/bunnings-logo.png" alt="Bunnings" className="h-16 object-contain" />
+                    </div>
+                </div>
+            ) : (
+                <div className="mb-12 flex justify-center items-center">
+                    <img src="/velux logo.svg" alt="VELUX" className="h-16 object-contain" />
+                </div>
+            )}
 
             {/* Step Title - clean */}
             <motion.div
