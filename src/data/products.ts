@@ -331,8 +331,8 @@ export const BLINDS: Blind[] = [
         type: 'accessory',
         compatibleModels: ['GGL', 'GPL'],
         prices: {
-            'CK02': 339, 'CK04': 339, 'MK04': 419, 'MK06': 419, 'MK08': 419,
-            'SK06': 465, 'CK06': 351, 'MK10': 433, 'SK10': 481
+            'CK02': 351, 'CK04': 351, 'MK04': 433, 'MK06': 433, 'MK08': 433,
+            'SK06': 481, 'CK06': 351, 'MK10': 433, 'SK10': 481
         },
         image: '/ZIL-insect-screen.png'
     },
