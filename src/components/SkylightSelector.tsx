@@ -17,7 +17,7 @@ type StepId = 'product-type' | 'pitch' | 'material' | 'sun-tunnel-type' | 'roof-
 interface SelectionState {
     productCategory: 'skylight' | 'roof-window' | 'sun-tunnel' | null;
     roofPitch: 'pitched' | 'flat' | null;
-    roofMaterial: 'tiled-corrugated' | 'wide-metal' | null;
+    roofMaterial: 'tile' | 'corrugated' | 'trimdek' | 'klip-lok' | null;
     // Derived or legacy mapping for compatibility
     roofType: 'tiled' | 'corrugated' | 'wide-metal' | 'flat' | null;
     // installType removed, assumed 'new'
@@ -73,8 +73,10 @@ const PITCH_OPTIONS = [
 ];
 
 const MATERIAL_OPTIONS = [
-    { id: 'tiled-corrugated', label: 'Tiled / Corrugated Metal', image: '/Untitled design (9).png' },
-    { id: 'wide-metal', label: 'Wide-span Metal (Trimdek / Klip-Lok)', image: '/IMG_3050.JPG' },
+    { id: 'tile', label: 'Tile', image: '/Tile.png' },
+    { id: 'corrugated', label: 'Corrugated Iron', image: '/Corrugated.png' },
+    { id: 'trimdek', label: 'Trimdek', image: '/Trimdek.png' },
+    { id: 'klip-lok', label: 'Klip-Lok', image: '/Kliplok.png' },
 ];
 
 
@@ -301,11 +303,12 @@ export default function SkylightSelector() {
     };
 
     const handleMaterialSelect = (id: string) => {
-        const mappedType = id === 'tiled-corrugated' ? 'tiled' : 'wide-metal';
+        const isWideMetal = id === 'trimdek' || id === 'klip-lok';
+        const mappedType = isWideMetal ? 'wide-metal' : 'tiled';
         setSelection({ ...selection, roofMaterial: id as any, roofType: mappedType });
 
         if (selection.productCategory === 'sun-tunnel') {
-            if (id === 'wide-metal') {
+            if (isWideMetal) {
                 // Metal Roofs: MUST use TCR
                 setSelection(prev => ({ ...prev, selectedProduct: 'tcr', sizeCode: '014', roofType: 'wide-metal' }));
                 nextStep('results');
@@ -1165,7 +1168,7 @@ export default function SkylightSelector() {
                 flashingName = 'Custom Flashing Required';
             } else {
                 // Pitched Roof
-                if (selection.roofMaterial === 'wide-metal') {
+                if (selection.roofType === 'wide-metal') {
                     // Wide Metal -> Custom Flashing Required (TCR)
                     flashingName = 'Custom Flashing Required';
                 } else {
@@ -1178,7 +1181,7 @@ export default function SkylightSelector() {
         } else {
             // Skylight Logic
             if (selection.roofPitch === 'pitched') {
-                if (selection.roofMaterial === 'tiled-corrugated') {
+                if (selection.roofType === 'tiled') {
                     flashingPrice = FLASHINGS.prices[sizeCode] || 0;
                     flashingName = `EDW ${sizeCode} Flashing (Tile/Corrugated)`;
                 } else {
