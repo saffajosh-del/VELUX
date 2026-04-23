@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Check, ArrowLeft, Printer } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import bunningsMapping from '../data/bunnings-mapping.json';
 
 type StepId = 'product-type' | 'pitch' | 'material' | 'sun-tunnel-type' | 'roof-window-model' | 'opening' | 'truss' | 'size' | 'results' | 'blinds' | 'addon' | 'summary';
 
@@ -95,7 +94,12 @@ const TRUSS_OPTIONS = [
 ];
 
 
-export default function SkylightSelector() {
+interface SkylightSelectorProps {
+    customerId?: string;
+    customerMapping?: Record<string, string> | null;
+}
+
+export default function SkylightSelector({ customerId = 'velux', customerMapping = null }: SkylightSelectorProps) {
     const [step, setStep] = useState<StepId>('product-type');
     const [history, setHistory] = useState<StepId[]>([]);
     const [selection, setSelection] = useState<SelectionState>({
@@ -1112,8 +1116,8 @@ export default function SkylightSelector() {
 
     const renderSummaryStep = () => {
         const getPartnerCode = (code: string, blockLayout = false) => {
-            if (import.meta.env.VITE_PARTNER === 'bunnings' || import.meta.env.NEXT_PUBLIC_PARTNER === 'bunnings') {
-                const mapped = (bunningsMapping as Record<string, string>)[code];
+            if (customerId !== 'velux' && customerMapping) {
+                const mapped = customerMapping[code];
                 if (mapped && mapped !== 'Not Available' && mapped !== '#REF!') {
                     return (
                         <>
@@ -1385,14 +1389,14 @@ export default function SkylightSelector() {
     return (
         <div className="max-w-2xl mx-auto w-full min-h-screen py-10 px-4 flex flex-col font-sans">
             {/* Header - Minimalist */}
-            {(import.meta.env.VITE_PARTNER === 'bunnings' || import.meta.env.NEXT_PUBLIC_PARTNER === 'bunnings') ? (
+            {(customerId !== 'velux') ? (
                 <div className="mb-12 flex justify-center items-center w-full">
                     <div className="flex-1 flex justify-end pr-4">
                         <img src="/velux logo.svg" alt="VELUX" className="h-16 object-contain" />
                     </div>
                     <div className="h-16 w-px bg-gray-300 shrink-0"></div>
                     <div className="flex-1 flex justify-start pl-4">
-                        <img src="/bunnings-logo.png" alt="Bunnings" className="h-16 object-contain" />
+                        <img src={`/${customerId}-logo.png`} alt={customerId} className="h-16 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     </div>
                 </div>
             ) : (
