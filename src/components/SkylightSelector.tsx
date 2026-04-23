@@ -944,7 +944,6 @@ export default function SkylightSelector() {
                             <h3 className="text-xl font-bold mb-4">1. Add a Blind?</h3>
                             <div className="grid grid-cols-1 gap-4">
                                 {availableBlinds.map((b) => {
-                                    const price = b.prices[selection.sizeCode!];
                                     const isSelected = selection.selectedBlind === b.id;
                                     return (
                                         <Card
@@ -980,7 +979,6 @@ export default function SkylightSelector() {
                                 <h3 className="text-xl font-bold mb-4">2. Add an Insect Screen?</h3>
                                 <div className="grid grid-cols-1 gap-4">
                                     {availableScreens.map((s) => {
-                                        const price = s.prices[selection.sizeCode!];
                                         const isSelected = selection.selectedInsectScreen;
                                         return (
                                             <Card
@@ -1029,7 +1027,6 @@ export default function SkylightSelector() {
                 {/* <h2 className="text-2xl font-bold mb-6">Select a Blind (Optional)</h2> -- REMOVED PER USER REQUEST */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {availableBlinds.map((b) => {
-                        const price = b.prices[selection.sizeCode!];
                         const isSelected = selection.selectedBlind === b.id;
                         return (
                             <Card
